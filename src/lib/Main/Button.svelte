@@ -481,12 +481,9 @@
 		font-family: inherit;
 		width: 100%;
 		height: 100%;
-		display: grid;
+		display: flex;
 		border-radius: 0.65rem;
 		margin: 0;
-		grid-template-columns: min-content auto;
-		grid-auto-flow: row;
-		grid-template-areas: 'left right';
 		--container-padding: 0.72rem;
 
 		/* fix ripple */
