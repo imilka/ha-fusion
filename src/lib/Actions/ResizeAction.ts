@@ -1,5 +1,6 @@
 const RESIZE_START_EVENT_NAME = "resizeStart";
 const RESIZE_END_EVENT_NAME = "resizeEnd";
+const RESIZE_COLSPAN_CHANGED_EVENT_NAME = "resizeColSpanChanged";
 
 const RESIZE_BOUNDARY_THRESHOLD = 10;
 
@@ -20,6 +21,7 @@ export interface ResizeEvent {
 export interface ResizeAttributes {
 	"on:resizeStart"?: (event: CustomEvent<ResizeEvent>) => void;
 	"on:resizeEnd"?: (event: CustomEvent<ResizeEvent>) => void;
+	"on:resizeColSpanChanged"?: (event: CustomEvent<ResizeEvent>) => void;
 }
 
 export function resizeAction(
@@ -97,6 +99,10 @@ export function resizeAction(
 
 			if (resizeGridSpan !== currentResizeSpan) {
 				resizeTarget.style.gridColumn = `span ${resizeGridSpan}`;
+				dispatchEvent(RESIZE_COLSPAN_CHANGED_EVENT_NAME, {
+					target: resizeTarget,
+					newColSpan: resizeGridSpan
+				});
 			}
 
 			// Optionally update the overlay dynamically for visual feedback

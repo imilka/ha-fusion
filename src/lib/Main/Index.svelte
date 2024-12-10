@@ -53,14 +53,19 @@
 		isResizing = true;
 	}
 
-	function handleResizeEnd(item: ButtonItem, resizeEvent: CustomEvent<ResizeEvent>) {
-		isResizing = false;
-
-		const { newColSpan } = resizeEvent.detail;
+	function updateColSpan(item: ButtonItem, newColSpan: number) {
 		item.col_span = newColSpan;
 		view.sections = [...view.sections];
+	}
 
+	function handleResizeEnd(item: ButtonItem, resizeEvent: CustomEvent<ResizeEvent>) {
+		isResizing = false;
+		updateColSpan(item, resizeEvent.detail.newColSpan);
 		$record();
+	}
+
+	function handleResizeColSpanChanged(item: ButtonItem, resizeEvent: CustomEvent<ResizeEvent>) {
+		updateColSpan(item, resizeEvent.detail.newColSpan);
 	}
 
 	/**
@@ -393,6 +398,7 @@
 										}}
 										on:resizeStart={handleResizeStart}
 										on:resizeEnd={(event) => handleResizeEnd(item, event)}
+										on:resizeColSpanChanged={(event) => handleResizeColSpanChanged(item, event)}
 										tabindex="-1"
 										style={itemStyles(item?.type, item?.col_span)}
 									>
@@ -466,6 +472,7 @@
 							}}
 							on:resizeStart={handleResizeStart}
 							on:resizeEnd={(event) => handleResizeEnd(item, event)}
+							on:resizeColSpanChanged={(event) => handleResizeColSpanChanged(item, event)}
 							tabindex="-1"
 							style={itemStyles(item?.type, item?.col_span)}
 						>
