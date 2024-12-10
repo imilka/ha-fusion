@@ -21,19 +21,16 @@
 	import { openModal } from 'svelte-modals';
 	import Ripple from 'svelte-ripple';
 	import parser from 'js-yaml';
-	import ButtonState from '$lib/Main/ButtonState.svelte';
-	import ButtonIcon from '$lib/Main/ButtonIcon.svelte';
-	import ButtonName from '$lib/Main/ButtonName.svelte';
+	import ButtonDefault from '$lib/Main/ButtonDefault.svelte';
+	import ButtonClimate from '$lib/Main/ButtonClimate.svelte';
 
 	export let demo: string | undefined = undefined;
 	export let sel: any;
 	export let sectionName: string | undefined = undefined;
 
 	$: entity_id = demo || sel?.entity_id;
+	$: domain = getDomain(entity_id);
 	$: template = $templates?.[sel?.id];
-	$: icon = (sel?.template?.icon && template?.icon?.output) || sel?.icon;
-	$: color = (sel?.template?.color && template?.color?.output) || sel?.color;
-	$: marquee = sel?.marquee;
 	$: more_info = sel?.more_info;
 
 	let entity: HassEntity;
@@ -171,7 +168,7 @@
 		} else if (more_info === false) {
 			toggle();
 		} else {
-			switch (getDomain(sel?.entity_id)) {
+			switch (domain) {
 				// light
 				case 'light':
 					openModal(() => import('$lib/Modal/LightModal.svelte'), {
@@ -361,7 +358,7 @@
 		if ($editMode) {
 			await import('$lib/Modal/ButtonConfig.svelte');
 		} else {
-			switch (getDomain(sel?.entity_id)) {
+			switch (domain) {
 				case 'light':
 					await import('$lib/Modal/LightModal.svelte');
 					break;
@@ -433,6 +430,14 @@
 		}
 	}
 
+	/**
+	 * Resolve button component based on domain
+	 */
+	const domainComponentMap = {
+		climate: ButtonClimate,
+	};
+	$: ResolvedButtonComponent = domainComponentMap[domain] || ButtonDefault;
+
 	onDestroy(() => unsubscribe?.());
 </script>
 
@@ -454,51 +459,20 @@
 			: 'rgba(0, 0, 0, 0)'
 	}}
 >
-	<!-- ICON -->
-
-	<div
-		class="left"
-		on:click|stopPropagation={(event) => {
-			if (!$editMode) {
-				toggle();
-			} else {
-				handleEvent(event);
-			}
-		}}
-		on:keydown
-		role="button"
-		tabindex="0"
-	>
-		<ButtonIcon
-			{icon}
-			{entity_id}
-			{color}
-			{attributes}
-			{template}
-			{loading}
-			{stateOn}
-		/>
-	</div>
-
-	<div class="right" on:click|stopPropagation={handleEvent} on:keydown role="button" tabindex="0">
-		<!-- NAME -->
-		<ButtonName
-			{sel}
-			{template}
-			{sectionName}
-			{entity}
-			{stateOn}
-		/>
-
-		<!-- STATE -->
-		<ButtonState
-			{sel}
-			{template}
-			{entity_id}
-			{marquee}
-			{stateOn}
-		/>
-	</div>
+	<svelte:component
+		this={ResolvedButtonComponent}
+		{entity_id}
+		{attributes}
+		{template}
+		{loading}
+		{stateOn}
+		{sel}
+		{sectionName}
+		{entity}
+		editMode={editMode}
+		on:toggle={toggle}
+		on:handleEvent={(event) => handleEvent(event.detail.event)}
+	/>
 </div>
 
 <style>
@@ -518,19 +492,6 @@
 		/* fix ripple */
 		transform: translateZ(0);
 		overflow: hidden;
-	}
-
-	.left {
-		display: inherit;
-		padding: var(--container-padding);
-	}
-
-	.right {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		overflow: hidden;
-		padding-right: var(--container-padding);
 	}
 
 	.container[data-state='true'] {
